@@ -1,0 +1,105 @@
+comparator test
+
+.include "../../../pdk/gf180/ngspice/design.ngspice"
+
+.lib "../../../pdk/gf180/ngspice/sm141064.ngspice" ss
+
+.param sw_stat_global = 0
+.param sw_stat_mismatch = 0
+
+
+*********COMPARATOR TRAN Simulation***********
+
+.param wn1=33.3u ln1=300n mn1=1
+.param wn2=33.3u ln2=300n mn2=1
+.param wn3=33.3u ln3=300n mn3=1
+.param wp1=33.3u lp1=600n mp1=1
+.param wp2=33.3u lp2=600n mp2=1
+.param wp3=33.3u lp3=600n mp3=1
+.param vddh=3.6
+.param vcm=0.5*vddh
+.param vneg=vcm-0.05
+.param vpos=vcm+0.05
+
+****provided netlist *************
+xm1 p clk 0 0 nmos_3p3 w=wn1 l=ln1 m=mn1  
+xm2a xn inp p 0 nmos_3p3 w=wn2 l=ln2 m=mn2
+xm2b xp inn p 0 nmos_3p3 w=wn2 l=ln2 m=mn2
+xm3a outn outp xn 0 nmos_3p3 w=wn3 l=ln3 m=mn3 
+xm3b outp outn xp 0 nmos_3p3 w=wn3 l=ln3 m=mn3 
+xm4a outn outp VDD VDD pmos_3p3 w=wp1 l=lp1 m=mp1
+xm4b outp outn VDD VDD pmos_3p3 w=wp1 l=lp1 m=mp1
+xm5a outn clk VDD VDD pmos_3p3 w=wp2 l=lp2 m=mp2
+xm5b outp clk VDD VDD pmos_3p3 w=wp2 l=lp2 m=mp2
+xm6a xn clk VDD VDD pmos_3p3 w=wp3 l=lp3 m=mp3
+xm6b xp clk VDD VDD pmos_3p3 w=wp3 l=lp3 m=mp3
+
+C1 outp 0 {25f}
+C2 outn 0 {25f}
+*****end provided netlist************
+vdd VDD 0 dc=vddh
+
+vinn inn 0 dc=vneg
+vinp inp 0 dc=vpos
+*************************************
+.param freq=250Meg
+.param per=1/freq
+.param pvdda=vddh
+Vclk clk 0 pulse (0 'pvdda' '0.4*per' '0.1*per' '0.1*per' '0.4*per' 'per')
+
+.control
+set temp=-40
+let mc_runs = 1
+let run = 0
+set curplot=new
+echo $curplot
+set scratch=$curplot
+setplot $scratch
+let clk2out_arr=unitvec(mc_runs)
+let clk2rec_arr=unitvec(mc_runs)
+let power_arr=unitvec(mc_runs)
+
+dowhile run < mc_runs
+  mc_source
+  
+  let per=1/250Meg
+  let tstep=per/50
+  let tstop=4*per
+  tran 20p 16n
+  save outp outn clk
+  
+  meas tran clk2out trig v(clk) val=0.5 rise=2 targ v(outn) val=0.5 fall=2
+  meas tran clk2rec trig v(clk) val=0.5 fall=2 targ v(outn) val=0.99 rise=2
+  let mypower = v(VDD) * i(vdd)
+  meas tran idt integ i(vdd) from=4n to=8n
+  echo $curplot
+  set run=$&run
+  set dt=$curplot
+  setplot $scratch
+  echo $curplot
+  
+  let vout{$run}={$dt}.v(outn)
+  let clk2out_arr[run]={$dt}.clk2out
+  let clk2rec_arr[run]={$dt}.clk2rec
+  let power_arr[run]={$dt}.idt
+  
+  setplot $dt
+  let run = run+1
+end
+
+wrdata tran.csv {$scratch}.clk2out_arr {$scratch}.power_arr {$scratch}.clk2rec_arr
+.endc
+
+.end
+    
+    
+
+
+
+
+
+
+
+
+
+

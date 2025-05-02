@@ -1,0 +1,41 @@
+dsn_netlist: !!python/tuple ["eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_tt_3.3_27.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_ff_3.0_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_ss_3.0_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_fs_3.0_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_sf_3.0_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_ff_3.6_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_ss_3.6_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_fs_3.6_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_sf_3.6_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_ff_3.0_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_ss_3.0_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_fs_3.0_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_sf_3.0_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_ff_3.6_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_ss_3.6_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_fs_3.6_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/two_stage_opamp_cont_gf180_tran_sf_3.6_125.cir",
+                            ]
+num_process: 1
+
+params:
+  wp1:  !!python/tuple [0.5e-6, 100.0e-6]
+  wn1:  !!python/tuple [0.5e-6, 100.0e-6]
+  wp3:  !!python/tuple [0.5e-6, 100.0e-6]
+  wn3:  !!python/tuple [0.5e-6, 100.0e-6]
+  wn4:  !!python/tuple [0.5e-6, 100.0e-6]
+  wn5:  !!python/tuple [0.5e-6, 100.0e-6]
+  cc:   !!python/tuple [!!float 0.1e-12, !!float 10.0e-12]
+
+#Every specification output will be normlaized in the order of (gain, ibias, pm, t_settle, ugbw, vswing)
+normalize: !!python/tuple [250, 0.003, 60, !!float 8.0e-6, 20000000.0, 0.25]
+init_params: !!python/tuple [17.33e-6, 88.76e-6, 72.1e-6, 46.21e-6, 19.64e-6, 70.00e-6, 3.48e-12]
+prec_params: !!python/tuple [9, 9, 9, 9, 9, 9, 16]
+
+target_specs:
+  gain_min: !!python/tuple [200,300]
+  vswing_min: !!python/tuple [0.2, 0.3]
+  ugbw_min: !!python/tuple [!!float 1.0e6, !!float 2.0e7]
+  phm_min: !!python/tuple [60,60.0000001]
+  ibias_max: !!python/tuple [0.001, 0.01]
+  t_settle_max: !!python/tuple [!!float 2.0e-6, !!float 10.00e-6]

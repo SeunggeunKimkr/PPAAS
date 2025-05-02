@@ -1,0 +1,111 @@
+* Two_stage_amp test with subcircuit structure
+
+.include "../../../pdk/gf180/ngspice/design.ngspice"
+
+.lib "../../../pdk/gf180/ngspice/sm141064.ngspice" sf
+
+.param wp1=100.0u  lp1=300n mp1=1
+.param wn1=8.05u  ln1=300n mn1=1
+.param wn3=34.73u ln3=300n mn3=1
+.param wp3=7.24u  lp3=300n mp3=1
+.param wn4=6.12u  ln4=300n mn4=1
+.param wn5=27.11u ln5=300n mn5=1
+.param cc=2.95p
+.param ibias=30u
+.param cload=10p
+.param vddh=3.0
+.param vcm=0.5*vddh
+
+* for transient simulation
+.PARAM val0 = 'vcm-0.2'
+.PARAM val1 = 'vcm+0.2'
+.PARAM GBW_ideal = 5e4
+.PARAM STEP_TIME = '10/GBW_ideal'
+
+*-----------------------------------------------------------
+* Two Stage OPAMP Subcircuit Definition
+* External pins: 
+*   vinn  : Inverting input of differential pair
+*   vinp  : Non-inverting input of differential pair
+*   VDD   : Positive supply
+*   VSS   : Ground/negative supply
+*   vout  : Amplifier output
+*-----------------------------------------------------------
+.subckt Two_stage_amp VSS VDD vinn vinp vout
+
+* --- First Stage: Differential Pair with Active Loads ---
+xp1 net4 net4 VDD VDD pmos_3p3 w=wp1 l=lp1 m=mp1
+xp2 net5 net4 VDD VDD pmos_3p3 w=wp1 l=lp1 m=mp1
+
+xn1 net4 vinn net3 net3 nmos_3p3 w=wn1 l=ln1 m=mn1
+xn2 net5 vinp net3 net3 nmos_3p3 w=wn1 l=ln1 m=mn1
+
+* --- Biasing Network for the Differential Pair ---
+xn3 net3 net7 VSS VSS nmos_3p3 w=wn3 l=ln3 m=mn3
+xn4 net7 net7 VSS VSS nmos_3p3 w=wn4 l=ln4 m=mn4
+ibias VDD net7 ibias
+
+* --- Second Stage Amplifier ---
+xp3 vout net5 VDD VDD pmos_3p3 w=wp3 l=lp3 m=mp3
+xn5 vout net7 VSS VSS nmos_3p3 w=wn5 l=ln5 m=mn5
+
+* --- Compensation ---
+cc net5 vout {cc}
+
+.ends Two_stage_amp
+
+*-----------------------------------------------------------
+* Testbench for Two_stage_amp
+*-----------------------------------------------------------
+
+* Power Supplies
+VDD VDD 0 dc={vddh}
+VSS VSS 0 dc=0
+
+* Common-Mode Reference
+Vcm cm 0 dc={vcm}
+
+* Differential Input Sources 
+* Here, we set the inputs around the common-mode voltage.
+vin in 0 dc=0 ac=1.0
+ein1 vinp cm in 0 0.5
+ein2 vinn cm in 0 -0.5
+
+* Load Capacitor at the Output
+CL vo 0 {cload}
+
+* Instantiate the Two Stage OPAMP Subcircuit
+X0 VSS VDD vinn vinp vo Two_stage_amp
+
+VVISR visr 0 pulse('val0' 'val1' 1u 1p 1p '1*STEP_TIME' 1)
+X1 VSS VDD vo1 visr vo1 Two_stage_amp
+CLoad6 vo1 0 500p
+
+* .meas tran t_rise_edge when v(vo1)=1.7 rise=1
+* .meas tran t_rise_ param='t_rise_edge - 1u'
+* .meas tran t_rise param='t_rise_ * 1e6'
+* .meas tran sr_rise param='0.2 / t_rise'
+* .meas tran t_fall_edge when v(vo1)=1.7 fall=1
+* .meas tran t_fall_ param='t_fall_edge-1u-STEP_TIME'
+* .meas tran t_fall param='t_fall_*1e6'
+* .meas tran sr_fall param='0.2/t_fall'
+
+*-----------------------------------------------------------
+* Simulation Control
+*-----------------------------------------------------------
+.control
+  set temp=-40
+  ac dec 10 1 10G
+  run
+  set units=degrees
+  set wr_vecnames
+  option numdgt=7
+  wrdata ac.csv v(vo)
+  op
+  wrdata dc.csv i(VDD)
+  dc vin -0.001 0.001 1e-5
+  wrdata dc_sweep.csv v(vo)
+  tran 1u 4.01e-4
+  wrdata tran.csv v(visr) v(vo1)
+.endc
+.end

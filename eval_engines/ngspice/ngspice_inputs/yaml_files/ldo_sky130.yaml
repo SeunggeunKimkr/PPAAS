@@ -1,0 +1,40 @@
+dsn_netlist: !!python/tuple ["eval_engines/ngspice/ngspice_inputs/netlist/ldo_cont_sky130_tt_2.0_27.cir",
+                            "eval_engines/ngspice/ngspice_inputs/netlist/ldo_cont_sky130_ss_2.0_m40.cir",
+                            "eval_engines/ngspice/ngspice_inputs/netlist/ldo_cont_sky130_ff_2.0_m40.cir",
+                            "eval_engines/ngspice/ngspice_inputs/netlist/ldo_cont_sky130_fs_2.0_m40.cir",
+                            "eval_engines/ngspice/ngspice_inputs/netlist/ldo_cont_sky130_sf_2.0_m40.cir",
+                            "eval_engines/ngspice/ngspice_inputs/netlist/ldo_cont_sky130_ss_2.0_125.cir",
+                            "eval_engines/ngspice/ngspice_inputs/netlist/ldo_cont_sky130_ff_2.0_125.cir",
+                            "eval_engines/ngspice/ngspice_inputs/netlist/ldo_cont_sky130_fs_2.0_125.cir",
+                            "eval_engines/ngspice/ngspice_inputs/netlist/ldo_cont_sky130_sf_2.0_125.cir"
+                          ]
+num_process: !!int 1
+params:
+  W_M1: [!!float 1.0, !!float 100.0]
+  L_M1: [!!float 0.5, !!float 2.0]
+  W_M3: [!!float 1.0, !!float 100.0]
+  L_M3: [!!float 0.5, !!float 2.0]
+  W_M5: [!!float 1.0, !!float 100.0]
+  L_M5: [!!float 0.5, !!float 2.0]
+  W_pass: [!!float 10.0, !!float 100.0]
+  L_pass: [!!float 0.5, !!float 1.0]
+  M_pass: [!!float 100.0, !!float 2000.0]
+  Vb: [!!float 0.9, !!float 1.4]
+  RFB: [!!float 400.0, !!float 10.0e3]
+  CFB: [!!float 0.2e-12, !!float 10.0e-12]
+  CL: [!!float 20.0e-12, !!float 550.0e-12]
+
+normalize: [!!float 220.0, !!float 30.0, !!float 20.0, !!float 5.0, !!float 30.0, !!float 20.0, !!float 5.0, !!float 60.0, !!float 60.0]
+init_params: [!!float 13.0, !!float 2.0, !!float 80.0, !!float 0.5, !!float 14.27, !!float 1.22, !!float 63.65, !!float 0.5, !!float 142.0, !!float 1.37, !!float 476.0, !!float 0.83e-12, !!float 477.0e-12]
+prec_params: [!!int 3, !!int 3, !!int 3, !!int 3, !!int 3, !!int 3, !!int 3, !!int 3, !!int 0, !!int 2, !!int 0, !!int 15, !!int 15]
+
+target_specs:
+  Vdrop_max: [!!float 250.0, !!float 350.1]
+  mPSRR_maxload_worst_10kHz_min: [!!float 20.0, !!float 25.0]
+  mPSRR_maxload_worst_1MHz_min: [!!float 10.0, !!float 15.0]
+  mPSRR_maxload_worst_above_1MHz_min: [!!float 0.0, !!float 0.01]
+  mPSRR_minload_worst_10kHz_min: [!!float 10.0, !!float 20.0]
+  mPSRR_minload_worst_1MHz_min: [!!float 10.0, !!float 15.0]
+  mPSRR_minload_worst_above_1MHz_min: [!!float 10.0, !!float 20.0]
+  phm_maxload_min: [!!float 60.0, !!float 60.01]
+  phm_minload_min: [!!float 60.0, !!float 60.01]

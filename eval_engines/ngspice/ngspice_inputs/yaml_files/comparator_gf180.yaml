@@ -1,0 +1,37 @@
+dsn_netlist: !!python/tuple ["eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_tt_3.3_27.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_ff_3.0_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_ss_3.0_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_fs_3.0_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_sf_3.0_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_ff_3.6_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_ss_3.6_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_fs_3.6_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_sf_3.6_m40.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_ff_3.0_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_ss_3.0_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_fs_3.0_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_sf_3.0_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_ff_3.6_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_ss_3.6_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_fs_3.6_125.cir",
+                             "eval_engines/ngspice/ngspice_inputs/netlist/comparator_gf180_sf_3.6_125.cir"
+                             ]
+num_process: 1
+
+params:
+  wn1:  !!python/tuple [0.5e-6, 100.0e-6]
+  wn2:  !!python/tuple [0.5e-6, 100.0e-6]
+  wn3:  !!python/tuple [0.5e-6, 100.0e-6]
+  wp1:  !!python/tuple [0.5e-6, 100.0e-6]
+  wp2:  !!python/tuple [0.5e-6, 100.0e-6]
+  wp3:  !!python/tuple [0.5e-6, 100.0e-6]
+  
+#Every specification output will be normlaized in the order of (delay, power)
+normalize: !!python/tuple [150.0, 100.0]
+init_params: !!python/tuple [33.3e-6, 33.3e-6, 33.3e-6, 33.3e-6, 33.3e-6, 33.3e-6]
+prec_params: !!python/tuple [9, 9, 9, 9, 9, 9]
+
+
+target_specs:
+  delay_max: !!python/tuple [100.0, 200.0]
+  power_max: !!python/tuple [50.0, 150.0]
