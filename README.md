@@ -57,6 +57,12 @@ Replace `[TESTBENCH]` with one of:
 
 ---
 
+## Logging with Wandb
+
+Our training and deployment rely on logging with wandb. Log in to Wandb and make an account.
+
+---
+
 ## Generating Custom Evaluation Specs
 
 You can generate custom SPICE evaluation specifications with:
