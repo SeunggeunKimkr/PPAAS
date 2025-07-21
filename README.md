@@ -1,4 +1,4 @@
-# PPAAS: PVT and Pareto Aware Analog Sizing Analog Sizing via Goal-conditioned Reinforcement Learning
+# PPAAS: PVT and Pareto Aware Analog Sizing Analog Sizing via Goal-conditioned Reinforcement Learning (ICCAD 2025)
 
 A reinforcement‑learning framework for analog circuit sizing under process‑voltage‑temperature (PVT) variation.
 
