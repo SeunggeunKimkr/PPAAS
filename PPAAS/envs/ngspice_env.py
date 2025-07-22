@@ -1,25 +1,8 @@
 """
 A new ckt environment based on a new structure of MDP
 """
-import gymnasium
-from gymnasium import spaces
-
 import numpy as np
-import random
-
-
-from multiprocessing.dummy import Pool as ThreadPool
-from collections import OrderedDict
-import yaml
-import yaml.constructor
-import statistics
-import os
-import IPython
-import itertools
-import sys
 from eval_engines.util.core import *
-import pickle
-import os
 from PPAAS.envs.ngspice_env_base import ngspice_env
 from eval_engines.ngspice.CircuitClass import *
 
@@ -70,7 +53,7 @@ class ngspice_env_cont(ngspice_env):
     def update_params(self, action):
         scale = 1.0 * self.params[:, 1] / self.episode_len
         self.cur_params = self.cur_params + scale * np.array(action, dtype=np.float64)
-        precision = self.prec_params #ts opamp, fc opamp: gf180_tt
+        precision = self.prec_params
         self.cur_params = np.array([np.round(self.cur_params[i], precision[i]) for i in range(len(self.cur_params))])
         self.cur_params = np.clip(self.cur_params, self.params[:,0], self.params[:,1])
         return self.cur_params

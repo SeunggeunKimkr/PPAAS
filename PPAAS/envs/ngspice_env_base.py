@@ -1,18 +1,11 @@
-"""
-A new ckt environment based on a new structure of MDP
-"""
 import gymnasium
 from gymnasium import spaces
-
 import numpy as np
 import random
-
-from multiprocessing.dummy import Pool as ThreadPool
 from collections import OrderedDict
 import yaml
 import yaml.constructor
 import os
-import IPython
 from eval_engines.util.core import *
 import pickle
 import os
@@ -64,7 +57,6 @@ class ngspice_env(gymnasium.Env, ABC):
     CIR_YAML = path+'/eval_engines/ngspice/ngspice_inputs/yaml_files/two_stage_opamp.yaml'
 
     def __init__(self, env_config):
-        #TODO: automate this
         self.generalize = env_config.get("generalize",True)
         self.episode_len = env_config.get("episode_len", 30)
         self.valid = env_config.get("run_valid", False)
@@ -81,18 +73,17 @@ class ngspice_env(gymnasium.Env, ABC):
         self.online_goal = env_config.get("online_goal", False)
         self.pareto_freq = env_config.get("pareto_freq", 0)
         self.n_warmup = env_config.get("n_warmup", 4)
-        self.n_pareto = env_config.get("n_pareto", 4)
         self.env_steps = 0
         with open(self.CIR_YAML, 'r') as f:
             yaml_data = yaml.load(f, OrderedDictYAMLLoader)
         self.yaml_data = yaml_data
 
-
-        if self.generalize == False: #single goal
+        # single goal
+        if self.generalize == False:
             specs = yaml_data['target_specs']
-        else: #multi goals
-            if(self.online_goal == False):
-                load_specs_path = ngspice_env.path+"/PPAAS/gen_specs/"+self.spec_path
+        else:  # multi goals
+            if (self.online_goal == False):
+                load_specs_path = ngspice_env.path + "/PPAAS/gen_specs/" + self.spec_path
                 with open(load_specs_path, 'rb') as f:
                     specs = pickle.load(f)
             else:
@@ -162,7 +153,6 @@ class ngspice_env(gymnasium.Env, ABC):
                 ),
                 dtype=np.float64
             )     
-            #initialize current param/spec observations
             self.cur_specs = np.zeros(len(self.specs_id), dtype=np.float64)
         
         if env_config.get("action_type") == "discrete":
@@ -181,12 +171,9 @@ class ngspice_env(gymnasium.Env, ABC):
         #if multi-goal is selected, every time reset occurs, it will select a different design spec as objective
         if self.generalize == True:
             if self.online_goal:
-                if not hasattr(self, 'pareto_goal_history'):
-                    self.pareto_goal_history = []
-                # Only perform intelligent sampling if history has sufficient data
+                # Only perform PGDS if history has sufficient data
                 if len(self.pareto_goal_history) >= self.n_warmup and self.pareto_freq > 0:
                     if self.episode_steps % self.pareto_freq == 0:
-                        print("sampling new pareto goal with IS")
                         self.specs_ideal=self.specs_ideal_candidates[self.goal_idx]
                     else:
                         self.specs_ideal = self.sample_goal_uniform(list(self.specs.values()), num_goals_to_sample=1)[0]
@@ -211,8 +198,6 @@ class ngspice_env(gymnasium.Env, ABC):
             
         self.specs_ideal_norm = self.lookup(self.specs_ideal, self.global_g)
 
-        #initialize current parameters
-        #self.cur_params is index(disc) or value(cont) of current parameters
         self.cur_steps = 0
         self.cur_params = self.init_params()
         self.full_sim = 0
@@ -222,7 +207,7 @@ class ngspice_env(gymnasium.Env, ABC):
         tt_threshold = self.tt_threshold
         if self.SoF:
             # 1st stage: TT corner simulation
-            self.cur_specs = self.update(self.cur_params, self.tt_sim_env)[0] #tt corner spec
+            self.cur_specs = self.update(self.cur_params, self.tt_sim_env)[0]
             cur_spec_norms = []
             cur_spec_norm = self.lookup(self.cur_specs, self.global_g)
             all_specs = np.array([self.cur_specs]*self.num_corners)
@@ -232,7 +217,7 @@ class ngspice_env(gymnasium.Env, ABC):
             # 2nd stage: full corner simulation
             else: 
                 tt_done = True
-                full_cur_specs = self.update(self.cur_params, self.corner_sim_env) #multiple specs corresponding to multiple corners
+                full_cur_specs = self.update(self.cur_params, self.corner_sim_env)
                 for cur_spec in full_cur_specs:
                     cur_spec_norms.append(self.lookup(cur_spec, self.global_g))
                 cur_spec_norms = np.array([cur_spec_norm] + cur_spec_norms)
@@ -244,7 +229,7 @@ class ngspice_env(gymnasium.Env, ABC):
                 cur_spec_norm = np.min(cur_spec_norms, axis=0)
                 worst_idx = np.argmin(cur_spec_norms, axis=0)
                 reverse_indices = np.array(reverse_indices)
-                cur_spec_norm[reverse_indices] = -cur_spec_norm[reverse_indices] #worst spec among all corners
+                cur_spec_norm[reverse_indices] = -cur_spec_norm[reverse_indices]
                 self.cur_specs = np.array([self.cur_specs] + full_cur_specs)
                 all_specs = copy.deepcopy(self.cur_specs)
                 self.cur_specs = self.cur_specs[worst_idx, np.arange(len(worst_idx))]
@@ -252,7 +237,7 @@ class ngspice_env(gymnasium.Env, ABC):
                 if spec_diff < 0:
                     reward = -tt_threshold * spec_diff / float(len(self.specs_id))
                 
-                #3rd stage: satified all specs
+                #3rd stage: satified all desired specs
                 else:
                     reward = 30.0
         
@@ -298,18 +283,12 @@ class ngspice_env(gymnasium.Env, ABC):
             "done": done,
             "truncated": truncated,
             "tt_done": tt_done,
+            "pareto_buffer_size": len(self.pareto_goal_history),
         }
         self.ob = np.concatenate([cur_spec_norm, self.specs_ideal_norm, self.cur_params])
         return self.ob, info
- 
-    def step(self, action):
-        """
-        :param action: is vector with elements between 0 and 1 mapped to the index of the corresponding parameter
-        :return:
-        """
 
-        #Take action that RL agent returns to change current params
-        
+    def step(self, action):
         action = list(np.reshape(np.array(action),(np.array(action).shape[0],)))
         self.cur_params = self.update_params(action)
         tt_done = False
@@ -318,7 +297,7 @@ class ngspice_env(gymnasium.Env, ABC):
         tt_threshold = self.tt_threshold
         if self.SoF:
             # 1st stage: TT corner simulation
-            self.cur_specs = self.update(self.cur_params, self.tt_sim_env)[0] #tt corner spec
+            self.cur_specs = self.update(self.cur_params, self.tt_sim_env)[0]
             cur_spec_norms = []
             cur_spec_norm = self.lookup(self.cur_specs, self.global_g)
             all_specs = np.array([self.cur_specs]*self.num_corners)
@@ -326,7 +305,7 @@ class ngspice_env(gymnasium.Env, ABC):
             if spec_diff < 0:
                 tt_done = False
                 self.tt_sim += 1
-                reward = tt_threshold + (tt_threshold - min_threshold) * (spec_diff / float(len(self.specs_id))) #-12.0 ~ -6.0
+                reward = tt_threshold + (tt_threshold - min_threshold) * (spec_diff / float(len(self.specs_id)))
                 corner_norm_std = 1.0
             else:
                 # 2nd stage: full corner simulation
@@ -411,7 +390,6 @@ class ngspice_env(gymnasium.Env, ABC):
         if done or truncated:
             self.episode_corner_norm_std = corner_norm_std
             if self.online_goal:
-                print("pareto buffer size:", len(self.pareto_goal_history))
                 if self.pareto_freq > 0:
                     self.specs_ideal_candidates = self.sample_goal_pareto(self.pareto_goal_history, num_goals_to_sample=16)
                 else:
@@ -431,10 +409,10 @@ class ngspice_env(gymnasium.Env, ABC):
             "truncated": truncated,
             "full_sim": self.full_sim,
             "tt_sim": self.tt_sim,
-            "ep_corner_norm_std": self.episode_corner_norm_std
+            "ep_corner_norm_std": self.episode_corner_norm_std,
+            "pareto_buffer_size": len(self.pareto_goal_history),
         }
         return self.ob, reward, done, truncated, info
-
 
     def lookup(self, spec, goal_spec):
         spec = np.asarray(spec, dtype=np.float32)
@@ -467,19 +445,13 @@ class ngspice_env(gymnasium.Env, ABC):
                 pdb.set_trace()
         return spec
         
-        
-    
-    
     def aggregate(self, spec, goal_spec):
-        '''
-        Aggregate: doesn't penalize for overshooting spec, is negative
-        '''
         rel_specs = self.lookup(spec, goal_spec)
         pos_val = [] 
         reward = 0.0
         for i,rel_spec in enumerate(rel_specs):
             if(self.specs_id[i][-3:] == 'max'):
-                rel_spec = rel_spec*-1.0#/10.0
+                rel_spec = rel_spec*-1.0
             if rel_spec < 0:
                 reward += rel_spec
                 pos_val.append(0)
@@ -499,31 +471,18 @@ class ngspice_env(gymnasium.Env, ABC):
             
     def set_goal_idx(self, goal_idx):
         self.goal_idx=goal_idx
-        print("goal idx:", self.goal_idx)
         return True
     
     def sample_goal_pareto(self, pareto_goals, num_goals_to_sample=1):
-        """Sample goals intelligently based on maintained Pareto goals.
-
-        Args:
-            pareto_goals (list): Currently maintained Pareto front goals.
-            goals_history (np.ndarray): Historical sampled goals, shape (N, num_specs).
-            num_goals_to_sample (int): Number of new goals to sample.
-
-        Returns:
-            np.ndarray: Sampled goals based on Pareto goals.
-        """
         sampled_goals = []
         while len(sampled_goals) < num_goals_to_sample:
             goal = self.sample_goal_uniform(self.specs_range, num_goals_to_sample=1)[0]
             dominated, dominant = self.is_goal_dominated(goal, pareto_goals)
             if not dominated:
                 sampled_goals.append(goal)
-                print("New pareto goal sampled! rejection: ", self.rejection)
                 self.rejection = 0
             else:
                 self.rejection += 1
-
         return np.array(sampled_goals)
 
     def sample_goal_uniform(self, specs_range_vals, num_goals_to_sample=1):
@@ -536,15 +495,12 @@ class ngspice_env(gymnasium.Env, ABC):
                     else:
                         specs_valid.append(random.uniform(float(spec[0]), float(spec[1])))
                 sampled_goals.append(specs_valid)
-                
             return np.array(sampled_goals)
     
     def update_pareto_goals(self, new_goal, pareto_goals):
-        """Update Pareto goals incrementally when a new goal is added."""
         dominated, _ = self.is_goal_dominated(new_goal, pareto_goals)
         if dominated:
-            return pareto_goals  # new goal is dominated, don't add
-        
+            return pareto_goals
         # Remove any existing goals that the new goal dominates
         pareto_goals = [goal for goal in pareto_goals if not self.is_dominated(goal, new_goal)]
         pareto_goals.append(new_goal)
@@ -560,7 +516,7 @@ class ngspice_env(gymnasium.Env, ABC):
     def is_dominated(self, p, q):
         """Check if suggested goal p is dominated by goal q (assuming minimization or maximization)."""
         for idx in range(len(self.specs_id)):
-            if self.specs_id[idx] == 'phm_min':
+            if self.specs_id[idx] == 'phm_min': #phm_min's desired spec range is a singleton, not a range
                 continue
             if self.specs_id[idx][-3:] == 'max':
                 if p[idx] < q[idx]:
@@ -569,6 +525,7 @@ class ngspice_env(gymnasium.Env, ABC):
                 if p[idx] > q[idx]:
                     return False
         return True
+    
     def reset_idx(self):
         self.obj_idx=0
     

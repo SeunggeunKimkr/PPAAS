@@ -1,4 +1,4 @@
-name: sizing_baselines_2
+name: PPAAS
 channels:
   - defaults
 dependencies:

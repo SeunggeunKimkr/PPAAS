@@ -3,17 +3,9 @@ import numpy as np
 import copy
 from multiprocessing.dummy import Pool as ThreadPool
 import os
-import abc
-import scipy.interpolate as interp
-import scipy.optimize as sciopt
 import random
-import time
-import pprint
 import yaml
-import IPython
 import shutil
-import pdb
-debug = False
 
 class NgSpiceWrapper(object):
 
@@ -61,7 +53,6 @@ class NgSpiceWrapper(object):
         os.makedirs(design_folder, exist_ok=True)
 
         fpath = os.path.join(design_folder, new_fname + '.cir')
-
         lines = copy.deepcopy(tmp_lines)
         for line_num, line in enumerate(lines):
             if '.include' in line:
@@ -98,19 +89,12 @@ class NgSpiceWrapper(object):
         info = 0 # this means no error occurred
         command = "ngspice -b %s >/dev/null 2>&1" %fpath
         exit_code = os.system(command)
-        if debug:
-            print(command)
-            print(fpath)
-
         if (exit_code % 256):
             raise RuntimeError('program {} failed!'.format(command))
             info = 1 # this means an error has occurred
         return info
 
     def create_design_and_simulate(self, state, base_design_name, gen_dir, tmp_lines, verbose=False):
-        if debug:
-            print('state', state)
-            print('verbose', verbose)
         dsn_name = self.get_design_name(state, base_design_name)
         if verbose:
             print(dsn_name)
@@ -122,13 +106,6 @@ class NgSpiceWrapper(object):
 
 
     def run(self, state, design_names=None, verbose=False):
-        """
-        :param states:
-        :param design_names: if None default design name will be used, otherwise the given design name will be used
-        :param verbose: If True it will print the design name that was created
-        :return:
-            results = [(state: dict(param_kwds, param_value), specs: dict(spec_kwds, spec_value), info: int)]
-        """
         if design_names == None:
             design_names =  self.base_design_names
         run_parallel = True

@@ -8,8 +8,6 @@ import time
 import math
 import pdb
 
-debug = False
-
 from eval_engines.ngspice.ngspice_wrapper_parallel import NgSpiceWrapper
 
 def ldo_dc(output_path, file_name):
