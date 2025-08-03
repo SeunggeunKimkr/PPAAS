@@ -14,21 +14,20 @@ We introduce a **goal-conditioned RL** framework for analog device sizing that (
 ## Repository Structure
 
 ```
-.
-├── PPAAS/                                   # Training framework & RL environments
-│   ├── train.py                             # Main training
-│   ├── gen_specs.py                         # Generates custom evaluation specs
-│   └── envs/
-│         ├── ngspice_env_base.py            # Basic Environment
-│         ├── ngspice_env.py                 # Environment wrapper with discrete/continuous action space
-│         └── ngspice_env_goal.py            # Environment wrapper with goal-conditioned setting
-├── eval_engines/                            # Simulation wrapper, circuit benchmarks & environment configurations
-├── scripts/                                 # Bash scripts to launch training
+PPAAS/
+├── train.py                   # main training entry point
+├── gen_specs.py               # generate evaluation specs
+├── envs/
+│   ├── ngspice_env_base.py    # base Gym‑style environment
+│   ├── ngspice_env.py         # discrete / continuous wrapper
+│   └── ngspice_env_goal.py    # goal‑conditioned wrapper
+├── eval_engines/              # SPICE wrappers, benchmarks & configs
+├── scripts/                   # one‑line launchers
 │   ├── TSA.sh
 │   ├── CMA.sh
 │   ├── LDO.sh
 │   └── COMP.sh
-└── environment.yml                          # Conda environment spec
+└── environment.yml            # Conda spec
 ```
 
 ---
